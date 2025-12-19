@@ -1,0 +1,41 @@
+# DQN Kubernetes Resource Scaler Configuration
+
+# Model Configuration
+model:
+  path: "./final-models/model.pth"
+  state_dim: 8
+  action_dim: 3
+
+# Kubernetes Configuration
+kubernetes:
+  in_cluster: false # Set to true when running inside K8s cluster
+  namespaces:
+    - default
+    # - production
+    # - staging
+
+# Scaling Parameters
+scaling:
+  min_cpu: 0.1 # Minimum CPU cores
+  max_cpu: 8.0 # Maximum CPU cores
+  min_memory: 128 # Minimum memory in MB
+  max_memory: 16384 # Maximum memory in MB (16GB)
+  scale_factor: 0.2 # Resource adjustment factor (20%)
+  cooldown: 300 # Cooldown period in seconds (5 minutes)
+  dry_run: true # Set to false to apply actual changes
+
+# Auto-scaling Configuration
+autoscale:
+  enabled: true # Enable automatic periodic scaling
+  interval: 120 # Interval in seconds (5 minutes)
+
+# Monitoring Configuration
+monitoring:
+  history_window: 5 # Number of historical metrics to track
+  log_retention: 1000 # Number of decisions to keep in memory
+
+# Flask Server Configuration
+server:
+  host: "0.0.0.0"
+  port: 5000
+  debug: false

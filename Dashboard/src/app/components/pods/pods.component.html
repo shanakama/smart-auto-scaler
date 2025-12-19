@@ -1,0 +1,71 @@
+<div class="container">
+  <div class="card">
+    <div class="flex justify-between align-center">
+      <h2 class="card-header" style="margin-bottom: 0;">Managed Pods</h2>
+      <button class="btn btn-primary" (click)="loadPods()">
+        Refresh
+      </button>
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="loading" class="spinner"></div>
+
+    <!-- Error State -->
+    <div *ngIf="error" class="alert alert-danger">
+      {{ error }}
+    </div>
+
+    <!-- Pods Table -->
+    <div *ngIf="!loading && !error && pods.length > 0">
+      <p style="margin: 16px 0; color: #666;">
+        Total pods: <strong>{{ pods.length }}</strong>
+      </p>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Namespace</th>
+            <th>Owner Kind</th>
+            <th>Owner Name</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let pod of pods">
+            <td>
+              <strong>{{ pod.name }}</strong>
+            </td>
+            <td>
+              <span class="badge badge-primary">{{ pod.namespace }}</span>
+            </td>
+            <td>
+              <span *ngIf="pod.owner" class="badge badge-info">
+                {{ pod.owner.kind }}
+              </span>
+              <span *ngIf="!pod.owner" class="badge badge-warning">
+                No Owner
+              </span>
+            </td>
+            <td>
+              {{ pod.owner?.name || 'N/A' }}
+            </td>
+            <td>
+              <button
+                class="btn btn-primary"
+                [disabled]="isScaling(pod)"
+                (click)="scalePod(pod)">
+                {{ isScaling(pod) ? 'Scaling...' : 'Scale Now' }}
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Empty State -->
+    <div *ngIf="!loading && !error && pods.length === 0" class="alert alert-info">
+      No pods found in monitored namespaces
+    </div>
+  </div>
+</div>

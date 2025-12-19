@@ -1,0 +1,11 @@
+table {
+  font-size: 13px;
+}
+
+td small {
+  font-size: 11px;
+}
+
+select {
+  padding: 6px 10px;
+}
