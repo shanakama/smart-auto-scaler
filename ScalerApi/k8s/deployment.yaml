@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dqn-scaler
+  # namespace: dqn-scaler
+  labels:
+    app: dqn-scaler
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dqn-scaler
+  template:
+    metadata:
+      labels:
+        app: dqn-scaler
+    spec:
+      serviceAccountName: dqn-scaler
+      containers:
+        - name: dqn-scaler
+          image: dqn-scaler:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 5000
+              name: http
+          env:
+            - name: KUBERNETES_IN_CLUSTER
+              value: "true"
+            - name: PYTHONUNBUFFERED
+              value: "1"
+          resources:
+            requests:
+              cpu: "200m"
+              memory: "1Gi"
+            limits:
+              cpu: "300m"
+              memory: "1.5Gi"
+          volumeMounts:
+            - name: config
+              mountPath: /app/config.yaml
+              subPath: config.yaml
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 5000
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            timeoutSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 5000
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+      volumes:
+        - name: config
+          configMap:
+            name: dqn-scaler-config

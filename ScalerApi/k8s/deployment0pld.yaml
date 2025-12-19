@@ -1,0 +1,34 @@
+---
+---
+
+---
+
+---
+
+---
+
+---
+
+---
+
+---
+# Optional: Ingress for external access
+# apiVersion: networking.k8s.io/v1
+# kind: Ingress
+# metadata:
+#   name: dqn-scaler
+#   namespace: dqn-scaler
+#   annotations:
+#     nginx.ingress.kubernetes.io/rewrite-target: /
+# spec:
+#   rules:
+#     - host: dqn-scaler.example.com
+#       http:
+#         paths:
+#           - path: /
+#             pathType: Prefix
+#             backend:
+#               service:
+#                 name: dqn-scaler
+#                 port:
+#                   number: 5000

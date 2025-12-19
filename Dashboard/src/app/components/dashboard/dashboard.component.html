@@ -1,0 +1,415 @@
+<div class="enterprise-dashboard">
+  <div class="dashboard-header">
+    <div class="header-content">
+      <h1 class="dashboard-title">
+        <svg class="title-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path d="M3 3v18h18V3H3zM12 8v8M8 12h8"/>
+        </svg>
+        Kubernetes Resource Scaler
+      </h1>
+      <p class="dashboard-subtitle">Intelligent auto-scaling management dashboard</p>
+    </div>
+    <div class="header-actions">
+      <div class="status-indicator">
+        <span class="status-dot" [class.status-active]="!loading && !error"></span>
+        <span class="status-text">{{ loading ? 'Loading...' : error ? 'Error' : 'Online' }}</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+
+    <!-- Loading State -->
+    <div *ngIf="loading" class="loading-state">
+      <div class="spinner"></div>
+      <p>Loading dashboard data...</p>
+    </div>
+
+    <!-- Error State -->
+    <div *ngIf="error" class="error-state">
+      <div class="error-icon">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="15" y1="9" x2="9" y2="15"/>
+          <line x1="9" y1="9" x2="15" y2="15"/>
+        </svg>
+      </div>
+      <h3>Dashboard Error</h3>
+      <p>{{ error }}</p>
+      <button class="btn btn-primary" (click)="loadDashboard()">Retry</button>
+    </div>
+
+    <!-- Dashboard Content -->
+    <div *ngIf="!loading && !error" class="dashboard-content">
+      <!-- Key Metrics Overview -->
+      <div class="metrics-section">
+        <h2 class="section-title">Key Metrics</h2>
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-header">
+              <div class="stat-icon decisions">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <polyline points="22,12 18,12 15,21 9,3 6,12 2,12"/>
+                </svg>
+              </div>
+              <div class="stat-label">Total Decisions</div>
+            </div>
+            <div class="stat-value">{{ statistics?.overview?.total_decisions || 0 | number }}</div>
+            <div class="stat-trend positive">+12% from last week</div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-header">
+              <div class="stat-icon scalings">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+                </svg>
+              </div>
+              <div class="stat-label">Applied Scalings</div>
+            </div>
+            <div class="stat-value">{{ statistics?.overview?.applied_scalings || 0 | number }}</div>
+            <div class="stat-trend positive">+8% from last week</div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-header">
+              <div class="stat-icon pods">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                  <rect x="9" y="9" width="6" height="6"/>
+                </svg>
+              </div>
+              <div class="stat-label">Pods Monitored</div>
+            </div>
+            <div class="stat-value">{{ statistics?.overview?.total_pods_monitored || 0 | number }}</div>
+            <div class="stat-trend neutral">No change</div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-header">
+              <div class="stat-icon rate">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                </svg>
+              </div>
+              <div class="stat-label">Scaling Rate</div>
+            </div>
+            <div class="stat-value">
+              {{ statistics?.overview?.scaling_rate || 0 | number : "1.1-1" }}%
+            </div>
+            <div class="stat-trend positive">+15% efficiency</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Model Performance -->
+      <div class="performance-section">
+        <div class="card">
+          <h2 class="card-header">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+            </svg>
+            Model Performance
+          </h2>
+      <div *ngIf="statistics?.model_performance" class="performance-grid">
+        <div class="performance-item">
+          <div class="performance-label">Model Type</div>
+          <div class="performance-value">{{ statistics?.model_performance?.model_type || 'N/A' }}</div>
+        </div>
+        <div class="performance-item">
+          <div class="performance-label">CPU Confidence</div>
+          <div class="performance-value">
+            {{ (statistics?.model_performance?.average_cpu_confidence || 0) * 100 | number : "1.1-1" }}%
+          </div>
+        </div>
+        <div class="performance-item">
+          <div class="performance-label">Memory Confidence</div>
+          <div class="performance-value">
+            {{ (statistics?.model_performance?.average_memory_confidence || 0) * 100 | number : "1.1-1" }}%
+          </div>
+        </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Resource Utilization -->
+      <div class="utilization-section">
+        <div class="card">
+          <h2 class="card-header">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+              <polyline points="7.5,4.21 12,6.81 16.5,4.21"/>
+              <polyline points="7.5,19.79 7.5,14.6 3,12"/>
+              <polyline points="21,12 16.5,14.6 16.5,19.79"/>
+            </svg>
+            Resource Utilization
+          </h2>
+      <div *ngIf="statistics?.resource_utilization" class="utilization-grid">
+        <div class="utilization-item">
+          <div class="utilization-label">Average CPU Usage</div>
+          <div class="utilization-value">
+            {{ (statistics?.resource_utilization?.average_cpu_usage || 0) * 100 | number : "1.2-2" }}%
+          </div>
+        </div>
+        <div class="utilization-item">
+          <div class="utilization-label">Average Memory Usage</div>
+          <div class="utilization-value">
+            {{ (statistics?.resource_utilization?.average_memory_usage_mb || 0) | number : "1.2-2" }} MB
+          </div>
+        </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- System Status -->
+      <div class="status-section">
+        <div class="card">
+          <h2 class="card-header">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <circle cx="12" cy="12" r="10"/>
+              <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+              <path d="M12 17h.01"/>
+            </svg>
+            System Status
+          </h2>
+      <div *ngIf="statistics?.system_status" class="status-grid">
+        <div class="status-item">
+          <div class="status-label">Kubernetes Available</div>
+          <span class="badge" [ngClass]="statistics?.system_status?.kubernetes_available ? 'badge-success' : 'badge-danger'">
+            {{ statistics?.system_status?.kubernetes_available ? 'YES' : 'NO' }}
+          </span>
+        </div>
+        <div class="status-item">
+          <div class="status-label">Dry Run Mode</div>
+          <span class="badge" [ngClass]="statistics?.system_status?.dry_run_mode ? 'badge-warning' : 'badge-success'">
+            {{ statistics?.system_status?.dry_run_mode ? 'ENABLED' : 'DISABLED' }}
+          </span>
+        </div>
+        <div class="status-item">
+          <div class="status-label">Scale Factor</div>
+          <div class="status-value">
+            {{ (statistics?.system_status?.scale_factor || 0) * 100 }}%
+          </div>
+        </div>
+        <div class="status-item">
+          <div class="status-label">Cooldown Period</div>
+          <div class="status-value">
+            {{ (statistics?.system_status?.cooldown_period_minutes || 0) }} min
+          </div>
+        </div>
+      </div>
+    </div>
+
+      <!-- System Controls -->
+      <div class="controls-section">
+        <div class="card">
+          <h2 class="card-header">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <circle cx="12" cy="12" r="3"/>
+              <path d="M12 1v6M12 17v6M4.22 4.22l4.24 4.24M15.54 15.54l4.24 4.24M1 12h6M17 12h6M4.22 19.78l4.24-4.24M15.54 8.46l4.24-4.24"/>
+            </svg>
+            System Controls
+          </h2>
+
+          <div class="controls-content">
+            <div class="control-group">
+              <div class="control-info">
+                <h3 class="control-title">Auto-scaling Status</h3>
+                <div class="control-status">
+                  <span
+                    *ngIf="autoscaleStatus"
+                    class="badge"
+                    [ngClass]="
+                      autoscaleStatus.enabled ? 'badge-success' : 'badge-warning'
+                    "
+                  >
+                    <svg *ngIf="autoscaleStatus.enabled" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                      <polyline points="20,6 9,17 4,12"/>
+                    </svg>
+                    <svg *ngIf="!autoscaleStatus.enabled" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                      <circle cx="12" cy="12" r="10"/>
+                      <line x1="15" y1="9" x2="9" y2="15"/>
+                      <line x1="9" y1="9" x2="15" y2="15"/>
+                    </svg>
+                    {{ autoscaleStatus.enabled ? "ENABLED" : "DISABLED" }}
+                  </span>
+                  <span
+                    *ngIf="autoscaleStatus"
+                    class="badge badge-info"
+                  >
+                    Interval: {{ autoscaleStatus.interval_seconds }}s
+                  </span>
+                </div>
+              </div>
+
+              <div class="control-actions">
+                <button class="btn btn-primary" (click)="scaleAllNow()">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+                  </svg>
+                  Scale All Pods
+                </button>
+                <button
+                  class="btn"
+                  [ngClass]="autoscaleStatus?.enabled ? 'btn-danger' : 'btn-success'"
+                  (click)="toggleAutoscale()"
+                >
+                  <svg *ngIf="!autoscaleStatus?.enabled" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <polygon points="5,3 19,12 5,21 5,3"/>
+                  </svg>
+                  <svg *ngIf="autoscaleStatus?.enabled" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <rect x="6" y="4" width="4" height="16"/>
+                    <rect x="14" y="4" width="4" height="16"/>
+                  </svg>
+                  {{ autoscaleStatus?.enabled ? "Stop Autoscale" : "Start Autoscale" }}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    <!-- Action Distribution -->
+    <div class="card">
+      <h2 class="card-header">Action Distribution</h2>
+
+      <div *ngIf="statistics?.action_distribution" style="margin-top: 20px">
+        <!-- CPU Actions -->
+        <div class="action-section">
+          <h3>CPU Actions</h3>
+          <div style="margin-bottom: 20px">
+            <div class="flex justify-between align-center" style="margin-bottom: 8px">
+              <span><strong>DECREASE</strong></span>
+              <span>{{ getCpuActionCount('DECREASE') }} ({{ getCpuActionPercentage('DECREASE') }}%)</span>
+            </div>
+            <div class="progress-bar">
+              <div
+                class="progress-fill progress-decrease"
+                [style.width.%]="getCpuActionPercentage('DECREASE')"
+              ></div>
+            </div>
+          </div>
+
+          <div style="margin-bottom: 20px">
+            <div class="flex justify-between align-center" style="margin-bottom: 8px">
+              <span><strong>MAINTAIN</strong></span>
+              <span>{{ getCpuActionCount('MAINTAIN') }} ({{ getCpuActionPercentage('MAINTAIN') }}%)</span>
+            </div>
+            <div class="progress-bar">
+              <div
+                class="progress-fill progress-maintain"
+                [style.width.%]="getCpuActionPercentage('MAINTAIN')"
+              ></div>
+            </div>
+          </div>
+
+          <div style="margin-bottom: 20px">
+            <div class="flex justify-between align-center" style="margin-bottom: 8px">
+              <span><strong>INCREASE</strong></span>
+              <span>{{ getCpuActionCount('INCREASE') }} ({{ getCpuActionPercentage('INCREASE') }}%)</span>
+            </div>
+            <div class="progress-bar">
+              <div
+                class="progress-fill progress-increase"
+                [style.width.%]="getCpuActionPercentage('INCREASE')"
+              ></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Memory Actions -->
+        <div class="action-section">
+          <h3>Memory Actions</h3>
+          <div style="margin-bottom: 20px">
+            <div class="flex justify-between align-center" style="margin-bottom: 8px">
+              <span><strong>DECREASE</strong></span>
+              <span>{{ getMemoryActionCount('DECREASE') }} ({{ getMemoryActionPercentage('DECREASE') }}%)</span>
+            </div>
+            <div class="progress-bar">
+              <div
+                class="progress-fill progress-decrease"
+                [style.width.%]="getMemoryActionPercentage('DECREASE')"
+              ></div>
+            </div>
+          </div>
+
+          <div style="margin-bottom: 20px">
+            <div class="flex justify-between align-center" style="margin-bottom: 8px">
+              <span><strong>MAINTAIN</strong></span>
+              <span>{{ getMemoryActionCount('MAINTAIN') }} ({{ getMemoryActionPercentage('MAINTAIN') }}%)</span>
+            </div>
+            <div class="progress-bar">
+              <div
+                class="progress-fill progress-maintain"
+                [style.width.%]="getMemoryActionPercentage('MAINTAIN')"
+              ></div>
+            </div>
+          </div>
+
+          <div style="margin-bottom: 20px">
+            <div class="flex justify-between align-center" style="margin-bottom: 8px">
+              <span><strong>INCREASE</strong></span>
+              <span>{{ getMemoryActionCount('INCREASE') }} ({{ getMemoryActionPercentage('INCREASE') }}%)</span>
+            </div>
+            <div class="progress-bar">
+              <div
+                class="progress-fill progress-increase"
+                [style.width.%]="getMemoryActionPercentage('INCREASE')"
+              ></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Configuration Summary -->
+    <div class="card">
+      <h2 class="card-header">Configuration</h2>
+
+      <div
+        *ngIf="config"
+        style="
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+          gap: 16px;
+        "
+      >
+        <div>
+          <strong>Dry Run:</strong>
+          <span
+            class="badge"
+            [ngClass]="config.dry_run ? 'badge-warning' : 'badge-success'"
+          >
+            {{ config.dry_run ? "YES" : "NO" }}
+          </span>
+        </div>
+        <div>
+          <strong>Scale Factor:</strong> {{ config.scale_factor * 100 }}%
+        </div>
+        <div>
+          <strong>CPU Range:</strong> {{ config.min_cpu }} -
+          {{ config.max_cpu }} cores
+        </div>
+        <div>
+          <strong>Memory Range:</strong> {{ config.min_memory }} -
+          {{ config.max_memory }} MB
+        </div>
+        <div><strong>Cooldown:</strong> {{ config.scaling_cooldown }}s</div>
+        <div>
+          <strong>Namespaces:</strong> {{ config.namespaces.join(", ") }}
+        </div>
+      </div>
+        </div>
+      </div>
+
+      <!-- Timestamp -->
+      <div class="timestamp" *ngIf="statistics?.timestamp">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <circle cx="12" cy="12" r="10"/>
+          <polyline points="12,6 12,12 16,14"/>
+        </svg>
+        Last updated: {{ statistics?.timestamp | date:'medium' }}
+      </div>
+    </div>
+  </div>
+</div>

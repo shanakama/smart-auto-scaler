@@ -1,0 +1,168 @@
+<div class="container">
+  <div class="card">
+    <h2 class="card-header">Configuration</h2>
+
+    <!-- Loading State -->
+    <div *ngIf="loading" class="spinner"></div>
+
+    <!-- Error State -->
+    <div *ngIf="error" class="alert alert-danger">
+      {{ error }}
+    </div>
+
+    <!-- Success State -->
+    <div *ngIf="success" class="alert alert-success">
+      {{ success }}
+    </div>
+
+    <!-- Configuration Form -->
+    <div *ngIf="!loading && config">
+      <form (ngSubmit)="saveConfig()">
+        <!-- Dry Run -->
+        <div class="form-group">
+          <label>
+            <input type="checkbox" [(ngModel)]="config.dry_run" name="dry_run">
+            <strong style="margin-left: 8px;">Dry Run Mode</strong>
+          </label>
+          <p style="margin-top: 4px; color: #666; font-size: 14px;">
+            When enabled, scaling decisions are logged but not applied to Kubernetes
+          </p>
+        </div>
+
+        <!-- Scale Factor -->
+        <div class="form-group">
+          <label><strong>Scale Factor</strong></label>
+          <input
+            type="number"
+            [(ngModel)]="config.scale_factor"
+            name="scale_factor"
+            step="0.05"
+            min="0.1"
+            max="1.0"
+            required>
+          <p style="margin-top: 4px; color: #666; font-size: 14px;">
+            Percentage of resource change per scaling action ({{ config.scale_factor * 100 | number:'1.0-0' }}%)
+          </p>
+        </div>
+
+        <!-- CPU Limits -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+          <div class="form-group">
+            <label><strong>Minimum CPU (cores)</strong></label>
+            <input
+              type="number"
+              [(ngModel)]="config.min_cpu"
+              name="min_cpu"
+              step="0.1"
+              min="0.1"
+              required>
+          </div>
+
+          <div class="form-group">
+            <label><strong>Maximum CPU (cores)</strong></label>
+            <input
+              type="number"
+              [(ngModel)]="config.max_cpu"
+              name="max_cpu"
+              step="0.5"
+              min="0.5"
+              required>
+          </div>
+        </div>
+
+        <!-- Memory Limits -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+          <div class="form-group">
+            <label><strong>Minimum Memory (MB)</strong></label>
+            <input
+              type="number"
+              [(ngModel)]="config.min_memory"
+              name="min_memory"
+              step="64"
+              min="64"
+              required>
+          </div>
+
+          <div class="form-group">
+            <label><strong>Maximum Memory (MB)</strong></label>
+            <input
+              type="number"
+              [(ngModel)]="config.max_memory"
+              name="max_memory"
+              step="256"
+              min="256"
+              required>
+          </div>
+        </div>
+
+        <!-- Auto-scaling -->
+        <div class="form-group">
+          <label>
+            <input type="checkbox" [(ngModel)]="config.auto_scale_enabled" name="auto_scale_enabled">
+            <strong style="margin-left: 8px;">Enable Auto-scaling</strong>
+          </label>
+        </div>
+
+        <div class="form-group">
+          <label><strong>Auto-scaling Interval (seconds)</strong></label>
+          <input
+            type="number"
+            [(ngModel)]="config.auto_scale_interval"
+            name="auto_scale_interval"
+            step="30"
+            min="30"
+            required>
+          <p style="margin-top: 4px; color: #666; font-size: 14px;">
+            How often to run automatic scaling ({{ config.auto_scale_interval }}s = {{ config.auto_scale_interval / 60 | number:'1.1-1' }} minutes)
+          </p>
+        </div>
+
+        <div class="form-group">
+          <label><strong>Scaling Cooldown (seconds)</strong></label>
+          <input
+            type="number"
+            [(ngModel)]="config.scaling_cooldown"
+            name="scaling_cooldown"
+            step="30"
+            min="60"
+            required>
+          <p style="margin-top: 4px; color: #666; font-size: 14px;">
+            Minimum time between scaling the same pod ({{ config.scaling_cooldown }}s = {{ config.scaling_cooldown / 60 | number:'1.1-1' }} minutes)
+          </p>
+        </div>
+
+        <!-- Model Info (Read-only) -->
+        <div class="card" style="background: #f8f9fa; padding: 16px; margin-top: 20px;">
+          <h3 style="margin-bottom: 12px; font-size: 1.2rem;">DQN Model Information</h3>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
+            <div>
+              <strong>State Dimension:</strong> {{ config.state_dim }}
+            </div>
+            <div>
+              <strong>Action Dimension:</strong> {{ config.action_dim }}
+            </div>
+            <div>
+              <strong>History Window:</strong> {{ config.history_window }}
+            </div>
+            <div>
+              <strong>In-Cluster:</strong> {{ config.in_cluster ? 'Yes' : 'No' }}
+            </div>
+            <div>
+              <strong>Namespaces:</strong> {{ config.namespaces.join(', ') }}
+            </div>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex gap-10 mt-20">
+          <button type="submit" class="btn btn-primary" [disabled]="saving">
+            {{ saving ? 'Saving...' : 'Save Configuration' }}
+          </button>
+          <button type="button" class="btn btn-secondary" (click)="resetConfig()" [disabled]="saving">
+            Reset to Default
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

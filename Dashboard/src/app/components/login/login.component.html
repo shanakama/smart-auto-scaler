@@ -1,0 +1,49 @@
+<div class="login-container">
+  <div class="login-card">
+    <div class="login-header">
+      <h2>DQN Scaler Dashboard</h2>
+      <p>Sign in to access your dashboard</p>
+    </div>
+    
+    <form (ngSubmit)="onSubmit()" class="login-form">
+      <div class="form-group">
+        <label for="username">Username</label>
+        <input 
+          type="text" 
+          id="username" 
+          [(ngModel)]="username" 
+          name="username" 
+          placeholder="Enter your username"
+          required
+          [disabled]="loading"
+        >
+      </div>
+      
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input 
+          type="password" 
+          id="password" 
+          [(ngModel)]="password" 
+          name="password" 
+          placeholder="Enter your password"
+          required
+          [disabled]="loading"
+        >
+      </div>
+      
+      <div class="error-message" *ngIf="error">
+        {{ error }}
+      </div>
+      
+      <button 
+        type="submit" 
+        class="login-button" 
+        [disabled]="loading || !username || !password"
+      >
+        <span *ngIf="loading">Signing in...</span>
+        <span *ngIf="!loading">Sign In</span>
+      </button>
+    </form>
+  </div>
+</div>

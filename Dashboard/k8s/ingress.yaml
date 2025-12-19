@@ -1,0 +1,21 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: dqn-scaler-dashboard-ingress
+  namespace: smart-scaler
+  annotations:
+    nginx.ingress.kubernetes.io/admission-webhook: "false"
+    traefik.ingress.kubernetes.io/router.entrypoints: web
+spec:
+  ingressClassName: traefik
+  rules:
+  - host: dqn-dashboard.local
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: dqn-scaler-dashboard-service
+            port:
+              number: 8077

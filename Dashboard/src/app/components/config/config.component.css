@@ -1,0 +1,17 @@
+input[type="checkbox"] {
+  width: auto;
+  margin-right: 8px;
+  cursor: pointer;
+}
+
+input[type="number"] {
+  font-family: monospace;
+}
+
+form {
+  max-width: 800px;
+}
+
+.card h3 {
+  color: #667eea;
+}
